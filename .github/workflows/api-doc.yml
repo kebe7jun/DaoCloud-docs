@@ -29,11 +29,26 @@ jobs:
         uses: actions/checkout@v2
       - name: Start Proxy
         run: |
-          cat > /tmp/x <<EOF
+          set -x
+          p=${{ github.event.inputs.product }}
+          d=docs/zh/docs/openapi/${{ github.event.inputs.product }}
+          v=${{ github.event.inputs.version }}
+          mkdir -p ${d}
+          if [ -f ${d}/${v}.md ]; then
+            echo "file already exists"
+            exit 1
+          fi
+          if [ ! -f ${d}/index.md ]; then
+            cat > ${d}/index.md <<EOF
+            # 全局管理 OpenAPI
+            - [版本 ${v}](./${v}.md)
+            EOF
+          else
+            echo "- [版本 ${v}](./${v}.md)" >> ${d}/index.md
+          fi
+          cat > /tmp/${{ github.event.inputs.version }}.json <<EOF
           ${{ github.event.inputs.swagger_json }}
           EOF
-          set -x
-          env
-          echo ${{ github.event.inputs.product }}
-          echo ${{ github.event.inputs.version }}
-          cat /tmp/x
+          git checkout -b feature/add-${p}-${v}-api-doc
+          git status
+          gh pr list
