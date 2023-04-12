@@ -1,0 +1,39 @@
+name: Release OpenAPI Doc
+
+on:
+  workflow_dispatch:
+    inputs:
+      product:
+        description: 'Product'
+        required: true
+        default: 'ghippo'
+        type: choice
+        options:
+          - mspider
+          - ghippo
+          - kpanda
+      version:
+        description: 'Version of api'
+        required: true
+        type: string
+      swagger_json: 
+        description: JSON format swagger
+        required: true
+        type: string
+
+jobs:
+  add-openapi-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Start Proxy
+        run: |
+          cat > /tmp/x <<EOF
+          ${{ github.event.inputs.swagger_json }}
+          EOF
+          set -x
+          env
+          echo ${{ github.event.inputs.product }}
+          echo ${{ github.event.inputs.version }}
+          cat /tmp/x
