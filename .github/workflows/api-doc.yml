@@ -28,6 +28,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: Start Proxy
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -x
           p=${{ github.event.inputs.product }}
@@ -40,13 +42,14 @@ jobs:
           fi
           if [ ! -f ${d}/index.md ]; then
             cat > ${d}/index.md <<EOF
-            # 全局管理 OpenAPI
-            - [版本 ${v}](./${v}.md)
-            EOF
+          # 全局管理 OpenAPI
+          - [版本 ${v}](./${v}.md)
+          EOF
           else
             echo "- [版本 ${v}](./${v}.md)" >> ${d}/index.md
           fi
-          cat > /tmp/${{ github.event.inputs.version }}.json <<EOF
+          echo "# <swagger-ui src=${v}.json>" > ${d}/${v}.md
+          cat > ${d}/${v}.json <<EOF
           ${{ github.event.inputs.swagger_json }}
           EOF
           git checkout -b feature/add-${p}-${v}-api-doc
