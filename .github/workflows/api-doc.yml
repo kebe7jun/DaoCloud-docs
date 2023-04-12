@@ -54,4 +54,10 @@ jobs:
           EOF
           git checkout -b feature/add-${p}-${v}-api-doc
           git status
+          git add .
+          git config user.email "mspider-bot@7jun.cc"
+          git config user.name "mspider-bot"
+          git commit -m "Add ${p} version ${v} OpenAPI doc"
+          git push origin feature/add-${p}-${v}-api-doc 
+          gh pr create --title "Add ${p} version ${v} OpenAPI doc" -R kebe7jun/DaoCloud-docs
           gh pr list
