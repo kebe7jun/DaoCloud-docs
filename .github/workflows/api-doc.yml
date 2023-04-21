@@ -1,5 +1,6 @@
 name: Release OpenAPI Doc
 
+
 on:
   workflow_dispatch:
     inputs:
@@ -20,6 +21,9 @@ on:
         description: JSON format swagger
         required: true
         type: string
+  issues:
+    types:
+      - opened
 
 jobs:
   add-openapi-doc:
@@ -27,11 +31,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Start Proxy
+      - name: OpenAPI PR
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -x
+          echo "Issue title: ${{ github.event.issue.title }}"
+          echo "Issue body: ${{ github.event.issue.body }}"
+          echo ${{ toJson(github.event.issue) }}
+          exit 0
           p=${{ github.event.inputs.product }}
           d=docs/zh/docs/openapi/${{ github.event.inputs.product }}
           v=${{ github.event.inputs.version }}
