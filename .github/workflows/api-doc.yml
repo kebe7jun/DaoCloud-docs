@@ -24,11 +24,24 @@ on:
   issues:
     types:
       - opened
+      - edited
 
 jobs:
   add-openapi-doc:
     runs-on: ubuntu-latest
-    steps:
+    steps: 
+      - name: Run Issue form parser
+        id: parse
+        uses: peter-murray/issue-forms-body-parser@v2.0.0
+        with:
+          issue_id: ${{ github.event.issue.number }}
+          separator: '###'
+          # label_marker_start: '>>'
+          # label_marker_end: '<<'
+      - name: Show parsed data JSON
+        run: |
+          echo "${{ steps.parse.outputs.payload }}"
+        
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: OpenAPI PR
