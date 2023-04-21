@@ -30,18 +30,9 @@ jobs:
   add-openapi-doc:
     runs-on: ubuntu-latest
     steps: 
-      - name: Run Issue form parser
+      - name: Issue Forms Body Parser
         id: parse
-        uses: peter-murray/issue-forms-body-parser@v2.0.0
-        with:
-          issue_id: ${{ github.event.issue.number }}
-          separator: '###'
-          # label_marker_start: '>>'
-          # label_marker_end: '<<'
-      - name: Show parsed data JSON
-        run: |
-          echo "${{ steps.parse.outputs.payload }}"
-        
+        uses: zentered/issue-forms-body-parser@v2.0.0
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: OpenAPI PR
@@ -49,13 +40,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -x
-          echo "Issue title: ${{ github.event.issue.title }}"
-          echo "Issue body: ${{ github.event.issue.body }}"
-          echo ${{ toJson(github.event.issue) }}
-          exit 0
-          p=${{ github.event.inputs.product }}
-          d=docs/zh/docs/openapi/${{ github.event.inputs.product }}
-          v=${{ github.event.inputs.version }}
+          cat > /tmp/x <<'EOF'
+          ${{ steps.parse.outputs.data }}
+          EOF
+          p=$(cat /tmp/x | jq -r .product.text)
+          d=docs/zh/docs/openapi/${p}
+          v=$(cat /tmp/x | jq -r .version.text)
           mkdir -p ${d}
           if [ -f ${d}/${v}.md ]; then
             echo "file already exists"
@@ -70,9 +60,10 @@ jobs:
             echo "- [版本 ${v}](./${v}.md)" >> ${d}/index.md
           fi
           echo "# <swagger-ui src=${v}.json>" > ${d}/${v}.md
-          cat > ${d}/${v}.json <<EOF
-          ${{ github.event.inputs.swagger_json }}
+          cat > ${d}/${v}.json <<'EOF'
+          ${{ toJSON(steps.parse.outputs.data.swagger.text) }}
           EOF
+          sed -i 's/```*//g' ${d}/${v}.json
           git checkout -b feature/add-${p}-${v}-api-doc
           git status
           git add .
