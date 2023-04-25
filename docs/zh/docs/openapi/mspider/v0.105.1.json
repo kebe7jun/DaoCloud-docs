@@ -1,0 +1,1 @@
+$(cat /tmp/x | jq -r .swagger.text)
